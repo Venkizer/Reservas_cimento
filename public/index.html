@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reservas de Actividades</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    label, select, input, button { display: block; margin: .5rem 0; width: 100%; }
+  </style>
+</head>
+<body>
+  <h1>Reservar Actividad</h1>
+
+  <label for="actividades">Actividad:</label>
+  <select id="actividades">
+    <option value="">Cargando…</option>
+  </select>
+
+  <label for="nombre">Tu nombre:</label>
+  <input id="nombre" type="text" placeholder="Ingresa tu nombre" />
+
+  <label for="fecha">Fecha:</label>
+  <input id="fecha" type="date" />
+
+  <button id="btnReservar">Reservar</button>
+
+  <h2>Respuesta:</h2>
+  <pre id="resultado"></pre>
+
+  <script>
+    // Cambia LOCAL_URL por tu URL de desarrollo (p.ej. http://localhost:3000/api)
+    // y PROD_URL por la de producción (p.ej. https://reservas-app-api.onrender.com/api)
+    const API = 'http://localhost:3000/api';
+
+    // Carga actividades
+    fetch(`${API}/actividades`)
+      .then(res => res.json())
+      .then(lista => {
+        const sel = document.getElementById('actividades');
+        sel.innerHTML = '';  // limpia el “Cargando…”
+        lista.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.id;
+          opt.textContent = `${a.nombre} – $${a.precio}`;
+          sel.appendChild(opt);
+        });
+      })
+      .catch(err => console.error('Error al cargar actividades', err));
+
+    // Reservar al hacer click
+    document.getElementById('btnReservar').addEventListener('click', () => {
+      const actividadId  = +document.getElementById('actividades').value;
+      const nombreCliente = document.getElementById('nombre').value;
+      const fecha         = document.getElementById('fecha').value;
+      fetch(`${API}/reservar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actividadId, nombreCliente, fecha })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('resultado').textContent =
+          JSON.stringify(data, null, 2);
+      })
+      .catch(err => console.error('Error al reservar', err));
+    });
+  </script>
+</body>
+</html>
