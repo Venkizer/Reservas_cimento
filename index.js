@@ -6,9 +6,10 @@ const path = require('path');
 const app = express();
 
 // Middlewares
-app.use(cors());               // Permitir peticiones cross‐origin
-app.use(express.json());       // Parsear JSON en body
-// Servir estático desde la carpeta "public"
+app.use(cors());                // Permitir peticiones desde el frontend
+app.use(express.json());        // Parseo de JSON en body
+
+// Servir archivos estáticos de la carpeta "public"
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Datos de ejemplo en memoria
@@ -22,7 +23,7 @@ const reservas = [];
 
 /**
  * GET /api/actividades
- * Devuelve la lista de actividades disponibles
+ * Devuelve la lista de actividades
  */
 app.get('/api/actividades', (req, res) => {
   res.json(actividades);
@@ -35,15 +36,18 @@ app.get('/api/actividades', (req, res) => {
  */
 app.post('/api/reservar', (req, res) => {
   const { actividadId, nombreCliente, fecha } = req.body;
-  // Validar
+
+  // Validación básica
   if (!actividadId || !nombreCliente || !fecha) {
     return res.status(400).json({ error: 'Faltan datos en la petición' });
   }
+
   const actividad = actividades.find(a => a.id === actividadId);
   if (!actividad) {
     return res.status(404).json({ error: 'Actividad no encontrada' });
   }
-  // Crear reserva
+
+  // Crear y almacenar reserva
   const reserva = {
     id: reservas.length + 1,
     actividad,
@@ -51,13 +55,11 @@ app.post('/api/reservar', (req, res) => {
     fecha
   };
   reservas.push(reserva);
+
   res.status(201).json(reserva);
 });
 
-/**
- * Para cualquier otra ruta GET, servir index.html
- * (útil si en el futuro montas routing en el frontend)
- */
+// Fallback: para cualquier otra ruta, devolver public/index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
